@@ -13,12 +13,13 @@ void get_filetype(char *filename, char *filetype);
 void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, 
 		 char *shortmsg, char *longmsg);
+void recycleScript(int sig);
 
 int main(int argc, char **argv) 
 {
     int listenfd, connfd, port, clientlen;
     struct sockaddr_in clientaddr;
-
+    Signal(SIGCHLD, recycleScript);
     /* Check command line args */
     if (argc != 2) {
 	fprintf(stderr, "usage: %s <port>\n", argv[0]);
@@ -196,7 +197,7 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
 	Dup2(fd, STDOUT_FILENO);         /* Redirect stdout to client */ //line:netp:servedynamic:dup2
 	Execve(filename, emptylist, environ); /* Run CGI program */ //line:netp:servedynamic:execve
     }
-    Wait(NULL); /* Parent waits for and reaps child */ //line:netp:servedynamic:wait
+    //Wait(NULL); /* Parent waits for and reaps child */ //line:netp:servedynamic:wait
 }
 /* $end serve_dynamic */
 
@@ -226,3 +227,14 @@ void clienterror(int fd, char *cause, char *errnum,
     Rio_writen(fd, body, strlen(body));
 }
 /* $end clienterror */
+
+/* begin signal handler */
+void recycleScript(int sig)
+{
+    if(waitpid(-1, NULL, 0) < 0)
+    {
+        unix_error("waitpid error");
+    }
+   printf("Handler reaped child\n");
+   return;
+}      
