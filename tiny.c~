@@ -61,7 +61,6 @@ void doit(int fd)
     Rio_readinitb(&rio, fd);
     Rio_readlineb(&rio, buf, MAXLINE);                   //line:netp:doit:readrequest
     sscanf(buf, "%s %s %s", method, uri, version);       //line:netp:doit:parserequest
-    printf("%s %s %s\n", method, uri, version);
     if (strcasecmp(method, "GET")) {                     //line:netp:doit:beginrequesterr
        clienterror(fd, method, "501", "Not Implemented",
                 "Tiny does not implement this method");
@@ -253,7 +252,5 @@ void recycleScript(int sig)
       
 void pipeHandle(int sig)
 {
-    printf("begin jump in father process...............\n");
-    fflush(stdout);
     siglongjmp(buf, 1);
 }
